@@ -4,21 +4,37 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserCreate(BaseModel):
-    """注册请求：邮箱 + 密码 + 昵称。"""
+    """注册请求：手机号 + 密码 + 昵称（产品决策：手机号为主标识，不做邮箱）。
 
-    email: EmailStr = Field(..., description="邮箱（登录名）")
+    注：本期短信验证码（SMS）暂未接入，使用「手机号 + 密码」直接注册即可；
+    未来在此预留验证码校验点（如增加 sms_code 字段，注册前校验）。
+    """
+
+    phone: str = Field(
+        ...,
+        min_length=11,
+        max_length=20,
+        pattern=r"^1[3-9]\d{9}$",
+        description="手机号（登录名，中国大陆 11 位）",
+    )
     password: str = Field(..., min_length=6, max_length=128, description="密码（至少 6 位）")
     nickname: str = Field(default="", max_length=64, description="昵称")
 
 
 class UserLogin(BaseModel):
-    """登录请求：邮箱 + 密码。"""
+    """登录请求：手机号 + 密码。"""
 
-    email: EmailStr = Field(..., description="邮箱")
+    phone: str = Field(
+        ...,
+        min_length=11,
+        max_length=20,
+        pattern=r"^1[3-9]\d{9}$",
+        description="手机号",
+    )
     password: str = Field(..., description="密码")
 
 
@@ -42,5 +58,6 @@ class UserOut(BaseModel):
 
     id: int
     nickname: str
-    email: EmailStr | None = None
+    phone: str | None = None
+    email: str | None = None
     created_at: datetime

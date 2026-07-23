@@ -13,9 +13,9 @@ export const useAuthStore = defineStore("auth", () => {
 
   const isLoggedIn = computed(() => !!token.value);
 
-  /** 邮箱 + 密码登录，成功后拉取用户信息。 */
-  async function login(email: string, password: string): Promise<void> {
-    const res = await apiLogin({ email, password });
+  /** 手机号 + 密码登录，成功后拉取用户信息。 */
+  async function login(phone: string, password: string): Promise<void> {
+    const res = await apiLogin({ phone, password });
     token.value = res.access_token;
     setToken(res.access_token);
     await loadMe();
@@ -23,12 +23,12 @@ export const useAuthStore = defineStore("auth", () => {
 
   /** 注册后立即登录。 */
   async function register(
-    email: string,
+    phone: string,
     password: string,
     nickname = ""
   ): Promise<void> {
-    await apiRegister({ email, password, nickname });
-    await login(email, password);
+    await apiRegister({ phone, password, nickname });
+    await login(phone, password);
   }
 
   /** 拉取当前登录用户。 */

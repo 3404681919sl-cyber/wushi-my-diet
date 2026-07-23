@@ -85,12 +85,19 @@ async def generate_recipe_llm(
         messages = _build_messages(context, target_weights, body_state, exclude_food_ids)
         # 3) 调用 DeepSeek（OpenAI 兼容接口）。
         client = AsyncOpenAI(api_key=api_key, base_url=_DEEPSEEK_BASE_URL)
-        resp = await client.chat.completions.create(
-            model=_DEEPSEEK_MODEL,
-            messages=messages,
-            response_format={"type": "json_object"},
-            timeout=_LLM_TIMEOUT,
-        )
+        try:
+            resp = await client.chat.completions.create(
+                model=_DEEPSEEK_MODEL,
+                messages=messages,
+                response_format={"type": "json_object"},
+                timeout=_LLM_TIMEOUT,
+            )
+        finally:
+            # 无论成功/超时/异常，都及时关闭底层连接，避免悬挂请求。
+            try:
+                await client.close()
+            except Exception:
+                pass
         content = resp.choices[0].message.content if resp.choices else None
 
         # 4) 健壮解析 + 防御式清洗。

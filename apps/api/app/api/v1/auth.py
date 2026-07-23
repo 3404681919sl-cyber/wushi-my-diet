@@ -1,10 +1,13 @@
 """鉴权路由：注册 / 登录 / 当前用户 / 微信登录（预留）。
 
 统一前缀：``/api/v1/auth``
-- ``POST /register``：邮箱 + 密码 + 昵称注册（密码 bcrypt 哈希）
-- ``POST /login``：签发 JWT access_token
+- ``POST /register``：手机号 + 密码 + 昵称注册（密码 bcrypt 哈希）
+- ``POST /login``：手机号 + 密码登录，签发 JWT access_token（JSON body，非 OAuth2 form）
 - ``GET /me``：返回当前登录用户（依赖 ``get_current_user``）
 - ``POST /wechat-login``：预留，本期返回 501（未来接 code2session）
+
+产品决策：以「手机号 + 密码」作为登录标识（不再使用邮箱）。本期短信验证码（SMS）
+暂未接入，注册/登录均用手机号 + 密码；验证码校验点已在 schema 注释中预留。
 """
 
 from __future__ import annotations
@@ -27,17 +30,20 @@ async def register(
     payload: UserCreate,
     db: AsyncSession = Depends(get_session),
 ) -> User:
-    """注册新用户（邮箱唯一，密码经 bcrypt 哈希后存储）。"""
-    existing = await db.scalar(select(User).where(User.email == payload.email))
+    """注册新用户（手机号唯一，密码经 bcrypt 哈希后存储）。
+
+    预留：未来在此接入短信验证码校验（SMS），校验通过后再落库。
+    """
+    existing = await db.scalar(select(User).where(User.phone == payload.phone))
     if existing is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="该邮箱已注册",
+            detail="该手机号已注册",
         )
 
     user = User(
         nickname=payload.nickname,
-        email=payload.email,
+        phone=payload.phone,
         password_hash=hash_password(payload.password),
     )
     db.add(user)
@@ -51,15 +57,15 @@ async def login(
     payload: UserLogin,
     db: AsyncSession = Depends(get_session),
 ) -> Token:
-    """邮箱密码登录，成功返回 JWT access_token。"""
-    user = await db.scalar(select(User).where(User.email == payload.email))
-    # 统一返回 401，避免泄露邮箱是否存在
+    """手机号 + 密码登录，成功返回 JWT access_token（JSON body）。"""
+    user = await db.scalar(select(User).where(User.phone == payload.phone))
+    # 统一返回 401，避免泄露手机号是否存在
     if user is None or user.password_hash is None or not verify_password(
         payload.password, user.password_hash
     ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="邮箱或密码错误",
+            detail="手机号或密码错误",
         )
 
     access_token = create_access_token(user.id)

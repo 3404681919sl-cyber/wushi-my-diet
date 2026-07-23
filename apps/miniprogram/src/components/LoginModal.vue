@@ -8,7 +8,7 @@
   >
     <view class="login-card">
       <view class="login-title">{{ isRegister ? "注册吾食" : "登录吾食" }}</view>
-      <nut-input v-model="email" placeholder="邮箱（登录名）" />
+      <nut-input v-model="phone" placeholder="手机号（登录名）" type="number" />
       <nut-input v-model="password" type="password" placeholder="密码（至少 6 位）" />
       <nut-input
         v-if="isRegister"
@@ -43,7 +43,7 @@ const visible = computed({
   set: (v) => emit("update:modelValue", v),
 });
 const isRegister = ref(false);
-const email = ref("");
+const phone = ref("");
 const password = ref("");
 const nickname = ref("");
 
@@ -52,15 +52,15 @@ function toggle(): void {
 }
 
 async function submit(): Promise<void> {
-  if (!email.value || !password.value) {
-    Toast.text("请填写邮箱和密码");
+  if (!phone.value || !password.value) {
+    Toast.text("请填写手机号和密码");
     return;
   }
   try {
     if (isRegister.value) {
-      await auth.register(email.value, password.value, nickname.value);
+      await auth.register(phone.value, password.value, nickname.value);
     } else {
-      await auth.login(email.value, password.value);
+      await auth.login(phone.value, password.value);
     }
     visible.value = false;
     emit("success");

@@ -22,8 +22,13 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     nickname: Mapped[str] = mapped_column(String(64), default="", comment="昵称")
+    # 手机号：产品决策以「手机号 + 密码」作为登录标识（唯一、索引）。
+    # 可空以兼容存量数据；新注册必填，模型层约束为非空。
+    phone: Mapped[str] = mapped_column(
+        String(20), unique=True, nullable=False, index=True, comment="手机号（登录名，唯一）"
+    )
     email: Mapped[Optional[str]] = mapped_column(
-        String(255), unique=True, nullable=True, index=True, comment="邮箱（登录名，唯一可空）"
+        String(255), unique=True, nullable=True, index=True, comment="邮箱（可选，兼容旧数据）"
     )
     # 密码哈希：bcrypt 哈希串，绝不以明文存储
     password_hash: Mapped[Optional[str]] = mapped_column(

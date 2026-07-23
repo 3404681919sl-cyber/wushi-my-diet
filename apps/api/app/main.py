@@ -8,7 +8,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import auth, challenge, map, profile, recipe
+from app.api.v1 import auth, challenge, foods, map, profile, recipe
 from app.core.config import settings
 
 # 创建应用
@@ -33,6 +33,7 @@ app.include_router(profile.router, prefix="/api/v1")
 app.include_router(challenge.router, prefix="/api/v1")
 app.include_router(recipe.router, prefix="/api/v1")
 app.include_router(map.router, prefix="/api/v1")
+app.include_router(foods.router, prefix="/api/v1")
 
 
 @app.get("/health", tags=["system"], summary="健康检查")

@@ -122,6 +122,7 @@ export interface TokenOut {
 export interface UserOut {
   id: number;
   nickname: string;
+  phone: string | null;
   email: string | null;
   created_at: string;
 }

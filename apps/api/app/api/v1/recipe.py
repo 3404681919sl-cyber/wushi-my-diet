@@ -11,6 +11,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import os
 
 from fastapi import APIRouter, Depends
@@ -22,6 +24,11 @@ from app.models.user import User
 from app.schemas.recipe import RecipeOut, RecipeRequest
 from app.services.recipe.llm import generate_recipe_llm
 from app.services.recipe.template import generate_recipe
+
+logger = logging.getLogger(__name__)
+
+# 食谱 LLM 调用最长等待（秒）：超时即静默回退模板，保证接口不长时间阻塞。
+_LLM_DEADLINE = float(os.getenv("RECIPE_LLM_DEADLINE", "12"))
 
 router = APIRouter(prefix="/recipe", tags=["recipe"])
 
@@ -44,18 +51,28 @@ async def create_recipe(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_session),
 ) -> RecipeOut:
-    """生成食谱：DeepSeek LLM 优先，失败回退模板。"""
-    # key 仅服务端持有：显式参数 → 环境变量 → （未来 admin DB 配置）。当前用环境变量。
+    """生成食谱：DeepSeek LLM 优先，失败/超时回退模板。"""
     api_key = os.getenv("DEEPSEEK_API_KEY")
+    recipe = None
 
-    recipe = await generate_recipe_llm(
-        db,
-        user_id=current_user.id,
-        target_weights=_target_weights_from_goal(payload.goal),
-        body_state=payload.body_state,
-        exclude_food_ids=payload.avoid_food_ids,
-        api_key=api_key,
-    )
+    if api_key:
+        try:
+            recipe = await asyncio.wait_for(
+                generate_recipe_llm(
+                    db,
+                    user_id=current_user.id,
+                    target_weights=_target_weights_from_goal(payload.goal),
+                    body_state=payload.body_state,
+                    exclude_food_ids=payload.avoid_food_ids,
+                    api_key=api_key,
+                ),
+                timeout=_LLM_DEADLINE,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("DeepSeek 食谱生成超时（%.0fs），回退模板", _LLM_DEADLINE)
+        except Exception as exc:  # 任何异常都回退模板，绝不外抛
+            logger.warning("DeepSeek 食谱生成异常，回退模板：%s", exc)
+
     if recipe is not None:
         recipe["engine"] = "llm"
         recipe["generated_by"] = "llm"
