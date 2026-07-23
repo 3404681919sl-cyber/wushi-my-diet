@@ -41,3 +41,24 @@ async def client() -> AsyncClient:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+
+@pytest_asyncio.fixture
+async def seeded_client(client: AsyncClient) -> AsyncClient:
+    """在测试库中预置 A6 内置食物后返回客户端。"""
+    from app.db.base import AsyncSessionLocal
+    from app.db.seed import seed_preset_foods
+
+    async with AsyncSessionLocal() as session:
+        await seed_preset_foods(session)
+    yield client
+
+
+@pytest_asyncio.fixture
+async def seed_foods():
+    """向测试库写入 A6 预设食物（供 challenge / recipe / map 用例使用）。"""
+    from app.db.base import AsyncSessionLocal
+    from app.db.seed import seed_preset_foods
+
+    async with AsyncSessionLocal() as session:
+        await seed_preset_foods(session)
