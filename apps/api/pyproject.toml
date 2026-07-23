@@ -1,0 +1,33 @@
+[project]
+name = "wushi-api"
+version = "0.1.0"
+description = "吾食（Wushi）后端 API 服务（FastAPI + SQLAlchemy 2.0 async）"
+readme = "../README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # 实际依赖见 requirements.txt，此处留空由 requirements.txt 统一管理
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[tool.pytest.ini_options]
+# 自动识别 async 测试，无需每个测试加 @pytest.mark.asyncio
+asyncio_mode = "auto"
+testpaths = ["tests"]
+# 将项目根加入 sys.path，便于测试直接 import app
+pythonpath = ["."]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]

@@ -1,0 +1,21 @@
+{
+  "name": "wushi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "吾食（Wushi）—— 个人食物耐受边界学习系统 Monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "pnpm --filter @wushi/api dev",
+    "dev:mp": "pnpm --filter @wushi/miniprogram dev:weapp",
+    "build:shared": "pnpm --filter @wushi/shared build",
+    "typecheck:shared": "pnpm --filter @wushi/shared typecheck"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

@@ -1,0 +1,40 @@
+# 吾食（Wushi）后端依赖
+# 安装：pip install -r requirements.txt
+# 注意：本地验证（无 PostgreSQL）可暂时不装 asyncpg，用 sqlite+aiosqlite 验证模型与链路。
+
+# Web 框架
+fastapi==0.111.*
+uvicorn[standard]==0.29.*
+
+# 数据库（SQLAlchemy 2.0 async + Alembic 迁移）
+sqlalchemy==2.0.*
+alembic==1.13.*
+
+# PostgreSQL 异步驱动（生产）。本地 SQLite 验证可省略。
+# 注意：Python 3.13 需 asyncpg>=0.30 才有预编译 wheel，生产 Linux 可用 0.29+。
+asyncpg>=0.29.0
+
+# 本地 SQLite 异步驱动（开发 / 测试兜底，非生产）
+aiosqlite==0.20.*
+
+# 配置 & 数据校验
+pydantic>=2.7
+pydantic-settings>=2.2
+email-validator>=2.1
+
+# 鉴权：JWT + 密码哈希
+python-jose[cryptography]==3.3.*
+passlib[bcrypt]==1.7.*
+# bcrypt 4.1+ 移除了 __about__ 且与 passlib 1.7.4 的后端探测不兼容（会抛 >72 字节错误），
+# 故固定 4.0.1 以保证 passlib[bcrypt] 可用。
+bcrypt==4.0.1
+
+# HTTP 客户端（DeepSeek / 微信 code2session，T3/T1 预留）
+httpx==0.27.*
+
+# 环境变量
+python-dotenv==1.0.*
+
+# 测试
+pytest==8.2.*
+pytest-asyncio==0.23.*

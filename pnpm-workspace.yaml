@@ -1,0 +1,5 @@
+# 吾食（Wushi）Monorepo 工作区声明
+# pnpm 使用此文件定位各子包；npm/yarn 可回退读取根 package.json 的 workspaces 字段。
+packages:
+  - "apps/*"
+  - "packages/*"
