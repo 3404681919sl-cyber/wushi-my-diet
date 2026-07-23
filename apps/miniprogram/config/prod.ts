@@ -1,9 +1,11 @@
-import type { AppConfig } from "./index";
+/** Taro 生产环境编译片段（与 config/index.ts 合并）。 */
 
-/** 生产环境配置（线上域名，需在小程序后台配置 request 合法域名）。 */
-const prodConfig: AppConfig = {
-  apiBaseUrl: "https://api.wushi.app",
-  isProd: true,
+export default {
+  mini: {
+    productionSourceMap: false,
+  },
+  h5: {
+    publicPath: "/",
+    esnextModules: [],
+  },
 };
-
-export default prodConfig;

@@ -1,9 +1,14 @@
-import type { AppConfig } from "./index";
+/** Taro 开发环境编译片段（与 config/index.ts 合并）。 */
 
-/** 开发环境配置（本地联调）。 */
-const devConfig: AppConfig = {
-  apiBaseUrl: "http://localhost:8000",
-  isProd: false,
+export default {
+  logger: {
+    quiet: false,
+    stats: true,
+  },
+  mini: {
+    productionSourceMap: false,
+  },
+  h5: {
+    esnextModules: [],
+  },
 };
-
-export default devConfig;
