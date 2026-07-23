@@ -35,4 +35,4 @@ apps/miniprogram/dist/
 apps/miniprogram/.temp/
 apps/miniprogram/.rn_temp/
 apps/miniprogram/.swc/
-_tmp_*/
+_tmp_*
