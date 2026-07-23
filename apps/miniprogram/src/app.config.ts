@@ -1,7 +1,13 @@
-/** 小程序全局配置（Taro）。 */
+/** 小程序全局配置（Taro）：注册 5 个核心页面与窗口样式。 */
 
 export default defineAppConfig({
-  // 页面与窗口配置在 T4 阶段按 5 个页面补全
+  pages: [
+    "pages/food-map/index",
+    "pages/symptom-log/index",
+    "pages/challenge/index",
+    "pages/recipe/index",
+    "pages/growth/index",
+  ],
   window: {
     backgroundTextStyle: "light",
     navigationBarBackgroundColor: "#ffffff",
