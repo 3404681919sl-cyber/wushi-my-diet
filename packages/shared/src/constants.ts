@@ -3,7 +3,7 @@
  * API 路径、安全等级文案、默认目标权重等集中管理。
  */
 
-import type { GoalType, SafetyLevel } from "./enums";
+import { GoalType, SafetyLevel } from "./enums";
 import type { TargetWeight } from "./types";
 
 /** API 基础路径前缀（与后端 main.py 挂载前缀一致）。 */

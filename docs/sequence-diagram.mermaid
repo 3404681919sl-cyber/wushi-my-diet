@@ -1,0 +1,95 @@
+sequenceDiagram
+    participant MP as 小程序
+    participant Auth as auth.py
+    participant WX as wechat.py
+    participant DB as User/Profile
+    participant Sec as security.py
+    MP->>MP: wx.login() 取 code
+    MP->>Auth: POST /api/v1/auth/wx-login {code}
+    Auth->>WX: code2session(appid, secret, code)
+    WX-->>Auth: {openid, unionid}
+    Auth->>DB: upsert User(unionid, openid)
+    DB-->>Auth: user
+    Auth->>DB: ensure Profile(user_id) 默认权重
+    Auth->>Sec: create_access_token(user_id)
+    Sec-->>Auth: jwt
+    Auth-->>MP: {access_token, user}
+    MP->>MP: 存 Pinia user store + 本地缓存
+
+sequenceDiagram
+    participant MP as 小程序
+    participant P as profile.py
+    participant C as conflict.engine
+    participant DB as Condition/SymptomDef
+    MP->>P: POST /api/v1/profile/conditions {name, fodmap_flags,...}
+    P->>DB: upsert Condition
+    P->>C: compute_conflicts(user_id)
+    C->>DB: 读所有 active Condition + Food
+    C->>C: 交集/并集 + 冲突食物标注
+    C-->>P: conflicts[]
+    P-->>MP: {conditions, conflicts}
+    MP->>MP: 渲染冲突标注区（IBS忌口 vs 血糖友好）
+    MP->>P: POST /api/v1/profile/symptoms (自定义症状 A3)
+    P->>DB: upsert SymptomDef(is_custom)
+    P-->>MP: {symptom_defs}
+
+sequenceDiagram
+    participant MP as 小程序
+    participant CH as challenge.py
+    participant ML as meal/日志
+    participant T as tolerance.update
+    participant P as prior.py
+    participant DB as ToleranceThreshold/MealLog
+    MP->>CH: POST /api/v1/challenge {food_id} (为🔴生成计划 B2)
+    CH->>P: get_prior(food_id) (A6 知识库)
+    P-->>CH: {prior_mean, prior_var}
+    CH->>CH: 起点 = safe*0.5 (§6-Q2)
+    CH->>DB: 建 Challenge + Steps(50/70/90g)
+    CH-->>MP: challenge plan
+    MP->>CH: POST /api/v1/challenge/{id}/step 记录反应(severity)
+    CH->>T: update(food_id, dose_g, severity)
+    T->>DB: 读 ToleranceThreshold(先验/上次后验)
+    T->>T: log-normal 共轭更新(§9.1)
+    T->>DB: 写 后验 + safe/caution/unsafe_g
+    T-->>CH: new_threshold
+    CH-->>MP: 步骤完成 + 三色可能变化
+    Note over MP,DB: 餐日志同理：POST /api/v1/meal → MealLog/MealItem → 触发 tolerance.update
+
+sequenceDiagram
+    participant MP as 小程序
+    participant R as recipe.py
+    participant T as tolerance (查询)
+    participant C as conflict.engine
+    participant B as burden (计算)
+    participant D as recipe.client (DeepSeek)
+    participant F as recipe.fallback
+    MP->>R: POST /api/v1/recipe {target_weights, body_state}
+    R->>T: get_thresholds(user_id) → 三色 + 剂量
+    R->>C: get_conflicts(user_id)
+    R->>B: get_burden_limits(user_id) → FODMAP/GL 阈值
+    R->>D: generate(prompt=画像+阈值+权重+约束)
+    alt DeepSeek 成功且 JSON 合法
+        D-->>R: RecipeJSON
+    else 超时/解析失败
+        D-->>R: error
+        R->>F: template_generate(🟢库70% + 探索插入)
+        F-->>R: RecipeJSON(burden_warning="模板生成")
+    end
+    R->>B: validate(RecipeJSON) → total_fodmap/gl
+    R-->>MP: {recipe, burden_warning}
+    MP->>MP: 渲染食谱卡 + 一键替换 + 预警
+
+sequenceDiagram
+    participant MP as 小程序
+    participant B as burden.fodmap / burden.gl
+    participant DB as Food / ToleranceThreshold
+    MP->>B: 计算(meal_items[] 或 recipe.items[])
+    B->>DB: 取每 food 的 fodmap_category / gl_per_100g
+    B->>B: FODMAP六类 Σ + GL Σ
+    B->>B: 对比 用户阈值(医学默认/历史微调)
+    alt 任一 > 阈值
+        B-->>MP: {warning: "午餐 GL 偏高", level: red/yellow}
+    else 安全
+        B-->>MP: {warning: null}
+    end
+    MP->>MP: BurdenWarning 组件展示 ⚠️

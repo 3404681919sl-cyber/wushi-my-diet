@@ -6,4 +6,5 @@ import App from "./App.vue";
 
 const app = createApp(App);
 app.use(createPinia());
-app.mount();
+// Taro 运行时会忽略挂载容器参数，仅用于满足 Vue 类型签名
+app.mount("#app");

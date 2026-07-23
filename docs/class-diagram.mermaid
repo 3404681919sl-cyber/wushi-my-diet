@@ -1,0 +1,175 @@
+classDiagram
+    class User {
+        +int id
+        +string unionid
+        +string openid
+        +string nickname
+        +datetime created_at
+        +datetime updated_at
+    }
+    class Profile {
+        +int id
+        +int user_id
+        +jsonb target_weights
+        +string scale_type
+        +datetime created_at
+        +datetime updated_at
+    }
+    class Condition {
+        +int id
+        +int user_id
+        +string name
+        +string category
+        +jsonb fodmap_flags
+        +bool glucose_flag
+        +bool histamine_flag
+        +bool is_active
+        +string note
+    }
+    class SymptomDef {
+        +int id
+        +int user_id
+        +string name
+        +string scale_type
+        +int severity_default
+        +bool is_custom
+    }
+    class SymptomLog {
+        +int id
+        +int user_id
+        +int symptom_def_id
+        +int meal_log_id
+        +int severity
+        +datetime logged_at
+    }
+    class MealLog {
+        +int id
+        +int user_id
+        +datetime eaten_at
+        +string note
+    }
+    class MealItem {
+        +int id
+        +int meal_log_id
+        +int food_id
+        +int amount_g
+        +string safety_level
+    }
+    class Challenge {
+        +int id
+        +int user_id
+        +int food_id
+        +string status
+        +int current_step
+        +int target_threshold_g
+        +datetime created_at
+    }
+    class ChallengeStep {
+        +int id
+        +int challenge_id
+        +int step_no
+        +int dose_g
+        +string status
+        +int reaction_severity
+        +datetime logged_at
+    }
+    class Food {
+        +int id
+        +string name
+        +jsonb fodmap_category
+        +float gi
+        +float gl_per_100g
+        +string histamine_level
+        +jsonb nutrients
+        +jsonb tags
+        +string source
+    }
+    class ToleranceThreshold {
+        +int id
+        +int user_id
+        +int food_id
+        +float prior_mean
+        +float prior_var
+        +float post_mean
+        +float post_var
+        +int safe_dose_g
+        +int caution_dose_g
+        +int unsafe_dose_g
+        +int n_obs
+        +datetime last_updated
+    }
+
+    User "1" --> "1" Profile : has
+    User "1" --> "*" Condition : records
+    User "1" --> "*" SymptomDef : defines
+    User "1" --> "*" SymptomLog : logs
+    User "1" --> "*" MealLog : eats
+    User "1" --> "*" Challenge : challenges
+    User "1" --> "*" ToleranceThreshold : tolerates
+
+    MealLog "1" --> "*" MealItem : contains
+    MealItem "*" --> "1" Food : references
+    SymptomLog "*" --> "1" SymptomDef : of
+    SymptomLog "*" --> "1" MealLog : after
+
+    Challenge "1" --> "*" ChallengeStep : steps
+    Challenge "*" --> "1" Food : targets
+
+    ToleranceThreshold "*" --> "1" Food : for
+
+    class SafetyLevel {
+        <<enum>>
+        GREEN = "green"
+        YELLOW = "yellow"
+        RED = "red"
+    }
+    class FodmapCategory {
+        <<enum>>
+        FRUCTAN
+        GOS
+        LACTOSE
+        FRUCTOSE
+        SORBITOL
+        MANNITOL
+    }
+    class GoalType {
+        <<enum>>
+        GUT = "gut"
+        GLUCOSE = "glucose"
+        FAT_LOSS = "fat_loss"
+    }
+    class ToleranceDTO {
+        +number foodId
+        +SafetyLevel safety
+        +number safeDoseG
+        +number cautionDoseG
+        +number unsafeDoseG
+        +number nObs
+    }
+    class RecipeItemDTO {
+        +string food
+        +number amountG
+        +SafetyLevel safety
+        +string[] replaceableWith
+        +string reason
+    }
+    class RecipeJSON {
+        +string recipeId
+        +string title
+        +Record~GoalType,number~ targetWeights
+        +RecipeItemDTO[] items
+        +number totalFodmapLoad
+        +number totalGl
+        +string burdenWarning
+        +string[] steps
+        +Nutrition nutrition
+        +string[] exploratoryInserts
+    }
+    class Nutrition {
+        +number kcal
+        +number proteinG
+        +number fatG
+        +number carbG
+    }
+    RecipeJSON "1" *-- "*" RecipeItemDTO : items
+    RecipeJSON "1" *-- "1" Nutrition : nutrition

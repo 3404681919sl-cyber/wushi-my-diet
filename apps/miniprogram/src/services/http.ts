@@ -2,7 +2,7 @@
 
 import Taro from "@tarojs/taro";
 import { API_BASE } from "@wushi/shared";
-import appConfig from "../config/index";
+import appConfig from "../../config/index";
 
 const TOKEN_KEY = "wushi_token";
 

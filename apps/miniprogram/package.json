@@ -2,12 +2,7 @@
   "name": "@wushi/miniprogram",
   "version": "0.1.0",
   "private": true,
-  "description": "吾食（Wushi）微信小程序 + H5 同构（Taro + Vue3）",
-  "templateInfo": {
-    "name": "default",
-    "typescript": true,
-    "css": "None"
-  },
+  "description": "吾食（Wushi）微信小程序 + H5 同构（Taro + Vue3）骨架（T4 补全页面）",
   "scripts": {
     "dev:weapp": "taro build --type weapp --watch",
     "build:weapp": "taro build --type weapp",
@@ -15,34 +10,19 @@
     "build:h5": "taro build --type h5",
     "typecheck": "tsc --noEmit"
   },
-  "browserslist": [
-    "last 3 versions",
-    "Android >= 4.1",
-    "ios >= 8"
-  ],
   "dependencies": {
     "@nutui/nutui-taro": "^4.2.0",
-    "@nutui/icons-vue-taro": "^4.2.0",
     "@tarojs/components": "^3.6.0",
-    "@tarojs/helper": "^3.6.0",
-    "@tarojs/plugin-platform-weapp": "^3.6.0",
-    "@tarojs/plugin-platform-h5": "^3.6.0",
     "@tarojs/react": "^3.6.0",
     "@tarojs/runtime": "^3.6.0",
-    "@tarojs/shared": "^3.6.0",
     "@tarojs/taro": "^3.6.0",
-    "@tarojs/vite-runner": "^3.6.0",
     "echarts": "^5.5.0",
     "pinia": "^2.1.0",
     "vue": "^3.4.0",
     "@wushi/shared": "workspace:*"
   },
   "devDependencies": {
-    "@tarojs/cli": "^3.6.0",
-    "@tarojs/webpack5-runner": "^3.6.0",
     "@types/node": "^20.0.0",
-    "@types/webpack-env": "^1.18.0",
-    "typescript": "^5.4.0",
-    "vite": "^5.2.0"
+    "typescript": "^5.4.0"
   }
 }
