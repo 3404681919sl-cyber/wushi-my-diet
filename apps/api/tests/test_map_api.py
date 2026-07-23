@@ -8,10 +8,10 @@ import pytest
 async def _auth(client):
     await client.post(
         "/api/v1/auth/register",
-        json={"nickname": "u", "email": "m@example.com", "password": "pw123456"},
+        json={"nickname": "u", "phone": "13800000000", "password": "pw123456"},
     )
     r = await client.post(
-        "/api/v1/auth/login", json={"email": "m@example.com", "password": "pw123456"}
+        "/api/v1/auth/login", json={"phone": "13800000000", "password": "pw123456"}
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 

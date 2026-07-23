@@ -57,13 +57,13 @@ def _chicken() -> Food:
     )
 
 
-async def _auth(client: AsyncClient, email: str, password: str = "secret123") -> dict:
-    """辅助：注册并登录，返回鉴权头。"""
+async def _auth(client: AsyncClient, phone: str = "13800000000", password: str = "pw123456") -> dict:
+    """辅助：用手机号注册并登录，返回鉴权头。"""
     await client.post(
         f"{API}/auth/register",
-        json={"email": email, "password": password, "nickname": "u"},
+        json={"phone": phone, "password": password, "nickname": "u"},
     )
-    login = await client.post(f"{API}/auth/login", json={"email": email, "password": password})
+    login = await client.post(f"{API}/auth/login", json={"phone": phone, "password": password})
     return {"Authorization": f"Bearer {login.json()['access_token']}"}
 
 
@@ -109,7 +109,7 @@ def test_update_symptomatic_lowers_safe() -> None:
 
 async def test_challenge_asymptomatic_raises_safe(seeded_client: AsyncClient) -> None:
     """微挑战 3 步无症状（高剂量）→ n_obs 累加且 safe_g 单调不降、整体升高。"""
-    headers = await _auth(seeded_client, "tol_a@example.com")
+    headers = await _auth(seeded_client, "13800000201")
     async with AsyncSessionLocal() as s:
         chicken = (await s.scalars(select(Food).where(Food.name == "鸡肉"))).first()
 
@@ -142,7 +142,7 @@ async def test_challenge_asymptomatic_raises_safe(seeded_client: AsyncClient) ->
 
 async def test_challenge_symptomatic_lowers_safe(seeded_client: AsyncClient) -> None:
     """微挑战 3 步有症状（低剂量）→ safe_g 低于冷启动先验。"""
-    headers = await _auth(seeded_client, "tol_b@example.com")
+    headers = await _auth(seeded_client, "13800000202")
     async with AsyncSessionLocal() as s:
         onion = (await s.scalars(select(Food).where(Food.name == "洋葱"))).first()
 
@@ -174,7 +174,7 @@ async def test_challenge_symptomatic_lowers_safe(seeded_client: AsyncClient) -> 
 
 async def test_record_meal_batch_updates(seeded_client: AsyncClient) -> None:
     """餐后批量更新：鸡肉无症状（高剂量）升高、米饭有症状（低剂量）降低，n_obs 累加。"""
-    headers = await _auth(seeded_client, "tol_c@example.com")
+    headers = await _auth(seeded_client, "13800000203")
     uid = await _user_id(seeded_client, headers)
     async with AsyncSessionLocal() as s:
         chicken = (await s.scalars(select(Food).where(Food.name == "鸡肉"))).first()

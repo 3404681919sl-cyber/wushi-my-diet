@@ -1,0 +1,56 @@
+# 吾食（Wushi）后端 —— 腾讯云 SCF 容器镜像 Web 函数定义
+# 使用 Serverless Framework + tencent-scf 组件。
+#
+# 重要：当前环境未连接腾讯云凭证，本文件为「可运行套件」，未实际执行 serverless deploy。
+# 使用前请：① 安装 Serverless Framework；② 配置腾讯云密钥（TENCENT_SECRET_ID / TENCENT_SECRET_KEY）；
+#          ③ 将下方 image 替换为你的 TCR 镜像地址（需先 docker build + push，见 deploy/README.md）。
+
+component: scf
+name: wushi-api
+# app / stage 仅用于资源分组与隔离，可按需修改
+app: wushi
+stage: prod
+
+inputs:
+  # 函数名称
+  name: wushi-api
+
+  # 地域：默认广州；可改为 ap-shanghai / ap-beijing / ap-chengdu 等
+  region: ap-guangzhou
+
+  # 容器镜像函数（custom runtime）
+  runtime: custom
+
+  # TODO: 替换为你的腾讯云容器镜像服务（TCR）地址，格式：
+  #       ccr.ccs.tencentyun.com/<namespace>/wushi-api:latest
+  #       <namespace> 为你自己的 TCR 命名空间。
+  image: ccr.ccs.tencentyun.com/<namespace>/wushi-api:latest
+
+  # 内存 / 超时（可按实际负载调整）
+  memorySize: 256
+  timeout: 30
+
+  # HTTP 触发：API 网关根路径代理全部 /api/*
+  triggers:
+    - type: apigw
+      parameters:
+        name: wushi-api-apigw
+        protocols:
+          - http
+        environment: release
+        endpoints:
+          - path: /
+            method: ANY
+            # Web 函数：请求转发到容器内监听端口（本镜像固定 8000，见 Dockerfile）。
+            # 若 SCF 要求容器监听 9000，请在 Dockerfile CMD 中改读 PORT 环境变量后同步此处说明。
+
+  # 运行时环境变量（密钥务必从密钥管理 / 环境变量注入，勿提交真实值）
+  environment:
+    # TODO: 真实 PostgreSQL 连接串（生产必填）
+    DATABASE_URL: postgresql+asyncpg://user:pass@host:5432/wushi
+    # TODO: 从密钥管理注入；留空则自动回退模板
+    DEEPSEEK_API_KEY: ""
+    # TODO: 从密钥管理注入；生产务必替换为强随机值
+    JWT_SECRET: ""
+    # TODO: 生产请明确来源，如 https://your.domain（避免使用 "*"）
+    CORS_ORIGINS: "*"

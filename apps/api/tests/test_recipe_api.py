@@ -12,10 +12,10 @@ from app.models.food import Food
 async def _auth(client):
     await client.post(
         "/api/v1/auth/register",
-        json={"nickname": "u", "email": "r@example.com", "password": "pw123456"},
+        json={"nickname": "u", "phone": "13800000000", "password": "pw123456"},
     )
     r = await client.post(
-        "/api/v1/auth/login", json={"email": "r@example.com", "password": "pw123456"}
+        "/api/v1/auth/login", json={"phone": "13800000000", "password": "pw123456"}
     )
     return {"Authorization": f"Bearer {r.json()['access_token']}"}
 
@@ -87,7 +87,9 @@ async def test_recipe_fallback_without_key(client, seed_foods, monkeypatch):
 @pytest.mark.asyncio
 async def test_recipe_llm_path(client, seed_foods, monkeypatch):
     """伪造 LLM 客户端返回固定 JSON，验证 engine=='llm' 且结构合法、无 🔴 冲突食物。"""
-    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    # T5 起 recipe 路由仅在 DEEPSEEK_API_KEY 存在时才进入 LLM 分支；
+    # 此处置一个假 key 让路由进入分支并调用被 monkeypatch 的 fake_llm。
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "dummy")
 
     async def fake_llm(*args, **kwargs):
         return {

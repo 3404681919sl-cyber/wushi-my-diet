@@ -82,3 +82,16 @@ pytest -q   # 覆盖 注册 / 登录 / GET /me / 错误密码拒绝
 - 微信类目定位：**健康 / 食品管理（非医疗诊断）**；数据上云加密 + 导出 / 删除。
 - DeepSeek 超时允许模板回退，保证可用性。
 - 先只做小程序（H5 同构代码保留，暂不上线）。
+
+## 生产部署 / Deployment
+
+后端可部署为**腾讯云 SCF 容器镜像 Web 函数 + API 网关**。完整物料与分步手册见
+[`apps/api/deploy/README.md`](apps/api/deploy/README.md)，包含：
+
+- `apps/api/Dockerfile`（基于 `python:3.11-slim`，内置 gunicorn + UvicornWorker，监听 8000）
+- `apps/api/.dockerignore`
+- `apps/api/deploy/serverless.yml`（Serverless Framework `tencent-scf` Web 函数定义）
+- `apps/api/deploy/README.md`（构建 / 推送 TCR / 创建函数 / 配置环境变量 / 健康检查）
+
+> 前置依赖：**PostgreSQL**（生产库，经 `DATABASE_URL` 注入）+ 你自己的**腾讯云账号与凭证**。
+> 仓库内不含任何真实密钥；`DEEPSEEK_API_KEY` / `JWT_SECRET` 等均在运行时由环境变量注入。

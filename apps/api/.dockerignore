@@ -1,0 +1,15 @@
+# 虚拟环境与 Python 缓存
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 测试与本地数据（不进镜像）
+tests/
+*.db
+
+# 密钥与本地配置（绝不进镜像）
+.env
+
+# 前端依赖（后端镜像不需要）
+node_modules/
