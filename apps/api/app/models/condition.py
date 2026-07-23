@@ -32,6 +32,11 @@ class Condition(Base):
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, comment="是否启用（用户可覆盖，B6）"
     )
+    # 覆盖（B6）预留：如 {"allowed_food_ids": [...]} / {"allowed_foods": ["名称"]}
+    # 标记某些食物「允许」，冲突引擎据此降级该冲突为非硬冲突。
+    override_json: Mapped[dict] = mapped_column(
+        JSONB, default=dict, comment="覆盖规则（B6 预留，如豁免某食物）"
+    )
     note: Mapped[str] = mapped_column(String(512), default="", comment="备注")
 
     user: Mapped["User"] = relationship(back_populates="conditions")
