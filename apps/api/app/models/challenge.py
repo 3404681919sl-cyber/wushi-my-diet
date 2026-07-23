@@ -52,6 +52,10 @@ class ChallengeStep(Base):
     )
     step_no: Mapped[int] = mapped_column(Integer, default=1, comment="步骤序号")
     dose_g: Mapped[int] = mapped_column(Integer, default=0, comment="本次剂量（克）")
+    # 反应严重度（0 ~ 10，0 表示无症状）；由挑战步骤回写后驱贝叶斯更新
+    severity: Mapped[Optional[int]] = mapped_column(
+        Integer, nullable=True, comment="反应严重度（0~10，0=无症状）"
+    )
     # 结果：ok（无不适）/ reacted（出现反应）/ None（未记录）
     result: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, comment="反应结果")
     logged_at: Mapped[Optional[datetime]] = mapped_column(
